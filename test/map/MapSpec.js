@@ -338,6 +338,28 @@ describe('Map.Spec', function () {
             expect(fitZoom).to.eql(zoom);
         });
 
+        it('getFitZoom with object', function () {
+            var extent = map.getExtent();
+            var zoom = map.getZoom();
+            var w = extent.getWidth(),
+                h = extent.getHeight();
+            var extent = new maptalks.Extent(extent.min + w / 4, extent.ymin + h / 4, extent.xmax - w / 4, extent.ymax - h / 4);
+            var fitZoom = map.getFitZoom(extent.toJSON());
+
+            expect(fitZoom).to.eql(zoom + 3);
+        });
+
+        it('getFitZoom with array', function () {
+            var extent = map.getExtent();
+            var zoom = map.getZoom();
+            var w = extent.getWidth(),
+                h = extent.getHeight();
+            var extent = new maptalks.Extent(extent.min + w / 4, extent.ymin + h / 4, extent.xmax - w / 4, extent.ymax - h / 4);
+            var fitZoom = map.getFitZoom([extent.xmin, extent.ymin, extent.xmax, extent.ymax]);
+
+            expect(fitZoom).to.eql(zoom + 3);
+        });
+
         it('fit to extent without animation', function () {
             var extent = new maptalks.Marker(map.getCenter()).getExtent();
             var maxZoom = map.getMaxZoom();

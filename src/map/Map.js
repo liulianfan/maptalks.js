@@ -800,12 +800,15 @@ class Map extends Handlerable(Eventable(Renderable(Class))) {
 
     /**
      * Caculate the zoom level that contains the given extent with the maximum zoom level possible.
-     * @param {Extent} extent
+     * @param {Extent|Array|Object} extent
      * @param  {Boolean} isFraction - can return fractional zoom
      * @return {Number} zoom fit for scale starting from fromZoom
      */
     getFitZoom(extent, isFraction) {
-        if (!extent || !(extent instanceof Extent)) {
+        if (extent && !(extent instanceof Extent)) {
+            extent = new Extent(extent);
+        }
+        if (!extent || !extent.isValid()) {
             return this._zoomLevel;
         }
         //It's a point
