@@ -20,6 +20,8 @@ const TEMP_EXTENT = new PointExtent();
  * @property {Boolean} [options.enableAltitude=false]  - whether to enable render geometry with altitude, false by default
  * @property {Boolean} [options.altitudeProperty=altitude] - geometry's altitude property name, if enableAltitude is true, "altitude" by default
  * @property {Boolean} [options.drawAltitude=false]  - whether to draw altitude: a vertical line for marker, a vertical polygon for line
+ * @property {Boolean} [options.sortByDistanceToCamera=false]  - markers Sort by camera distance
+ * @property {Boolean} [options.roundPoint=false]  - round point before painting to improve performance, but will cause geometry shaking in animation
  * @property {Number} [options.altitude=0]           - layer altitude
  * @property {Boolean} [options.debug=false]         - whether the geometries on the layer is in debug mode.
  * @memberOf VectorLayer
@@ -35,6 +37,8 @@ const options = {
     'enableAltitude': false,
     'altitudeProperty': 'altitude',
     'drawAltitude': false,
+    'sortByDistanceToCamera': false,
+    'roundPoint': false,
     'altitude': 0
 };
 
@@ -142,9 +146,6 @@ class VectorLayer extends OverlayLayer {
             'id': this.getId(),
             'options': this.config()
         };
-        if ((isNil(options['style']) || options['style']) && this.getStyle()) {
-            profile['style'] = this.getStyle();
-        }
         if (isNil(options['geometries']) || options['geometries']) {
             let clipExtent;
             if (options['clipExtent']) {
@@ -190,9 +191,6 @@ class VectorLayer extends OverlayLayer {
             }
         }
         layer.addGeometry(geometries);
-        if (json['style']) {
-            layer.setStyle(json['style']);
-        }
         return layer;
     }
 

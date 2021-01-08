@@ -61,7 +61,7 @@ class TileLayerCanvasRenderer extends CanvasRenderer {
             this.completeRender();
             return;
         }
-
+        this._tileOffsets = {};
         let loadingCount = 0;
         let loading = false;
         const checkedTiles = {};
@@ -78,7 +78,6 @@ class TileLayerCanvasRenderer extends CanvasRenderer {
 
         // main tile grid is the last one (draws on top)
         this._tileZoom = tileGrids[0]['zoom'];
-        this._tileOffset = tileGrids[0]['offset'];
 
         for (let i = 0; i < l; i++) {
             const tileGrid = tileGrids[i];
@@ -106,7 +105,8 @@ class TileLayerCanvasRenderer extends CanvasRenderer {
                         const hitLimit = loadingLimit && (loadingCount + preLoadingCount[0]) > loadingLimit;
                         if (!hitLimit && (!map.isInteracting() || (map.isMoving() || map.isRotating()))) {
                             loadingCount++;
-                            tileQueue[tileId + '@' + tile['point'].toArray().join()] = tile;
+                            const key = tileId;
+                            tileQueue[key] = tile;
                         }
                     }
                 }
@@ -235,24 +235,24 @@ class TileLayerCanvasRenderer extends CanvasRenderer {
         if (!image) {
             return;
         }
-        const offset = this._tileOffset;
+        const offset = this._getTileOffset(info.z);
         if (!offset[0] && !offset[1]) {
             this.drawTile(info, image);
             return;
         }
-        const map = this.getMap();
+        // const map = this.getMap();
         //tempararily add offset to tile info
-        const scale = map._getResolution(this._tileZoom) / map._getResolution(info.z);
-        offset[0] *= scale;
-        offset[1] *= scale;
+        // const scale = map._getResolution(this._tileZoom) / map._getResolution(info.z);
+        // offset[0] *= scale;
+        // offset[1] *= scale;
         info.point._sub(offset);
         info.extent2d._sub(offset);
         this.drawTile(info, image);
         //restore
         info.point._add(offset);
         info.extent2d._add(offset);
-        offset[0] /= scale;
-        offset[1] /= scale;
+        // offset[0] /= scale;
+        // offset[1] /= scale;
     }
 
     _drawTileAndCache(tile) {
@@ -260,6 +260,14 @@ class TileLayerCanvasRenderer extends CanvasRenderer {
         this.tilesInView[tile.info.id] = tile;
         this._drawTileOffset(tile.info, tile.image);
         this.tileCache.add(tile.info.id, tile);
+    }
+
+    _getTileOffset(z) {
+        if (!this._tileOffsets[z]) {
+            const offset = this.layer._getTileOffset(z);
+            this._tileOffsets[z] = offset;
+        }
+        return this._tileOffsets[z];
     }
 
     drawOnInteracting() {
@@ -432,6 +440,11 @@ class TileLayerCanvasRenderer extends CanvasRenderer {
             return;
         }
         if (tileImage instanceof Image) {
+            const errorUrl = this.layer.options['errorUrl'];
+            if (errorUrl && tileImage.src !== errorUrl) {
+                tileImage.src = errorUrl;
+                return;
+            }
             this.abortTileLoading(tileImage, tileInfo);
         }
         tileImage.loadTime = 0;
@@ -603,7 +616,6 @@ class TileLayerCanvasRenderer extends CanvasRenderer {
                 tilesLoading[tileId].current = false;
                 const { image, info } = tilesLoading[tileId];
                 this.abortTileLoading(image, info);
-                console.log('_getCachedTile');
                 delete tilesLoading[tileId];
             }
         } else {
@@ -691,7 +703,7 @@ class TileLayerCanvasRenderer extends CanvasRenderer {
         }
         const tileSize = this.layer.getTileSize(),
             scale = map._getResolution(z) / map._getResolution(),
-            canvas = this._tilePlaceHolder = this._tilePlaceHolder || Canvas.createCanvas(1, 1);
+            canvas = this._tilePlaceHolder = this._tilePlaceHolder || Canvas.createCanvas(1, 1, map.CanvasClass);
         canvas.width = tileSize.width * scale;
         canvas.height = tileSize.height * scale;
         if (isFunction(placeholder)) {

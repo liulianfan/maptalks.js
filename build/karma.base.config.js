@@ -3,11 +3,15 @@ module.exports = {
     basePath: '..',
     client: {
         mocha: {
-          timeout : 8000
+            timeout: 8000
         }
     },
-    files : [
+    files: [
         'dist/maptalks.js',
+        // js for UA
+        'test/resources/ua-parser.min.js',
+        //js for TileOffsetSpec.js
+        'test/resources/chncrs.js',
         'test/core/ClassSpec.js',
         'test/**/!(ClassSpec).js',
         {
